@@ -20,8 +20,6 @@ def crawNewsData(baseUrl, url):
 
         abstract = soup.find("h2", {'class': 'sapo'}).text
         title = soup.find("h1", {"class": "article-title"}).text
-        # if title
-        print(title)
 
         body = soup.find("div", id="main-detail-body")
         content = ""
@@ -44,7 +42,7 @@ def crawNewsData(baseUrl, url):
             "content": content,
             "image": image,
         })
-        print("==============")
+        print("======POST========")
         requests.post("http://13.214.56.12/api/create-post", {
             "title": title,
             "content": content,
@@ -102,6 +100,63 @@ def makeFastNews(data):
         print("saved to " + "news/" + name)
 
 
+def crawCafeF(baseUrl, url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    titles = soup.findAll('a', class_='avatar')
+    links = [link.attrs["href"] for link in titles]
+    data = []
+    for link in links:
+        news = requests.get(baseUrl + link)
+        soup = BeautifulSoup(news.content, "html.parser")
+        if not soup.find("h1", {"class": "title"}):
+            continue
+
+        abstract = soup.find("h2", {'class': 'sapo'}).text
+        abstract = abstract.replace("/\r/\n", abstract).strip()
+
+        title = soup.find("h1", {"class": "title"}).text
+        title = title.replace("/\r/\n", title).strip()
+
+        body = soup.find("span", id="mainContent")
+        content = ""
+        check = len(list(body.findChildren("p", recursive=False)))
+        try:
+            for i in range(check):
+                content += body.findChildren("p", recursive=False)[
+                    i].text
+        except:
+            content = ""
+
+        if not body.find("img"):
+            continue
+
+        image = body.find("img").attrs["src"]
+
+        data.append({
+            "title": title,
+            "abstract": abstract,
+            "content": content,
+            "image": image,
+        })
+        print("======POST========")
+        requests.post("http://13.214.56.12/api/create-post", {
+            "title": title,
+            "content": content,
+            "image": image,
+            "link": link,
+            "baseUrl": baseUrl
+        })
+    return data
+
+
 if __name__ == "__main__":
-    crawNewsData("https://tuoitre.vn",
-                 "https://tuoitre.vn/tin-moi-nhat.htm")
+    sources = [{"type": "cafef", "base": "https://cafef.vn/",
+               "link": "https://cafef.vn/thi-truong-chung-khoan.chn"}, {"type": "tuoitre", "base": "https://tuoitre.vn", "link": "https://tuoitre.vn/kinh-doanh/dau-tu.htm"}]
+    # sources = [{"base": "https://tuoitre.vn",
+    #            "link": "https://tuoitre.vn/tin-moi-nhat.htm"}]
+    for source in sources:
+        if source["type"] == "cafef":
+            crawCafeF(source['base'], source['link'])
+        elif source["type"] == 'tuoitre':
+            crawNewsData(source['base'], source['link'])
