@@ -151,7 +151,7 @@ def crawCafeF(baseUrl, url):
 
 
 if __name__ == "__main__":
-    sources = [{"type": "cafef", "base": "https://cafef.vn/",
+    sources = [{"type": "cafef", "base": "https://cafef.vn",
                "link": "https://cafef.vn/thi-truong-chung-khoan.chn"}, {"type": "tuoitre", "base": "https://tuoitre.vn", "link": "https://tuoitre.vn/kinh-doanh/dau-tu.htm"}]
     # sources = [{"base": "https://tuoitre.vn",
     #            "link": "https://tuoitre.vn/tin-moi-nhat.htm"}]
