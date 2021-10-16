@@ -27,8 +27,9 @@ async def read_item(item: Item):
     pattern = re.compile(
         r'src=(["\'])(.*?)\1', re.MULTILINE | re.DOTALL)
     news = requests.get(url)
+    print(news)
     soup = BeautifulSoup(news.content, "html.parser")
-
+    print(soup)
     # title = soup.find(
     #     "a", {"class": ["fs-16 flex flex-hozi-center color-yellow border-style-1"]}).text
     # tap = soup.find(
@@ -38,6 +39,7 @@ async def read_item(item: Item):
 
     url = re.findall(
         '\<source src=\"http[^\"]*"', conten_script)
+    print(url)
     url_final = ''
     if len(url):
         url_final = re.findall('http[^\"]*', url[0])[0]
