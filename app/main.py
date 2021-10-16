@@ -26,7 +26,12 @@ async def read_item(item: Item):
     print(item.url)
     pattern = re.compile(
         r'src=(["\'])(.*?)\1', re.MULTILINE | re.DOTALL)
-    news = requests.get(url)
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+    }
+
+    news = requests.get(url, headers)
     print(news)
     soup = BeautifulSoup(news.content, "html.parser")
     print(soup)
