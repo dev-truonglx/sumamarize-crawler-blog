@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageDraw, ImageFont
 import requests
 import json
+import re
 
 
 def crawNewsData(baseUrl, url):
@@ -43,13 +44,13 @@ def crawNewsData(baseUrl, url):
             "image": image,
         })
         print("======POST========")
-        requests.post("http://13.214.56.12/api/create-post", {
-            "title": title,
-            "content": content,
-            "image": image,
-            "link": link,
-            "baseUrl": baseUrl
-        })
+        # requests.post("http://13.214.56.12/api/create-post", {
+        #     "title": title,
+        #     "content": content,
+        #     "image": image,
+        #     "link": link,
+        #     "baseUrl": baseUrl
+        # })
     return data
 
 
@@ -150,13 +151,57 @@ def crawCafeF(baseUrl, url):
     return data
 
 
+def crawFilm(baseUrl, url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    titles = soup.find('div', class_='list-item-episode')
+    # print(titles)
+    count_link = len(titles.findChildren('a', recursive=False))
+    print(count_link)
+    links = []
+    for i in range(count_link):
+        links.append(titles.findChildren(
+            'a', recursive=False)[i].attrs['href'])
+
+    data = []
+    pattern = re.compile(
+        r'src=(["\'])(.*?)\1', re.MULTILINE | re.DOTALL)
+
+    for link in links:
+
+        news = requests.get(link)
+        soup = BeautifulSoup(news.content, "html.parser")
+
+        title = soup.find(
+            "a", {"class": ["fs-16 flex flex-hozi-center color-yellow border-style-1"]}).text
+        print(title)
+        tap = soup.find(
+            "div", {"class": ["fs-17 fw-700 padding-0-20 color-gray inline-flex height-40 flex-hozi-center bg-black border-l-t"]}).text
+        print(tap)
+        get_script = soup.find('script', text=pattern)
+        conten_script = get_script.string
+
+        url = re.findall(
+            '\<source src=\"http[^\"]*"', conten_script)
+        url_final = ''
+        if len(url):
+            url_final = re.findall('\"http[^\"]*"', url[0])[0]
+
+        print(url_final)
+        print("==============")
+    return data
+
+
 if __name__ == "__main__":
     sources = [{"type": "cafef", "base": "https://cafef.vn",
-               "link": "https://cafef.vn/thi-truong-chung-khoan.chn"}, {"type": "tuoitre", "base": "https://tuoitre.vn", "link": "https://tuoitre.vn/kinh-doanh/dau-tu.htm"}]
-    # sources = [{"base": "https://tuoitre.vn",
-    #            "link": "https://tuoitre.vn/tin-moi-nhat.htm"}]
+               "link": "https://cafef.vn/thi-truong-chung-khoan.chn"}, {"type": "tuoitre", "base": "https://tuoitre.vn", "link": "https://tuoitre.vn/kinh-doanh/dau-tu.htm"}, ]
+    # sources = [{"type": "film", "base": "https://animehay.site",
+    #            "link": "https://animehay.site/thong-tin-phim/thieu-nien-ca-hanh-2713.html"}]
+
     for source in sources:
         if source["type"] == "cafef":
             crawCafeF(source['base'], source['link'])
         elif source["type"] == 'tuoitre':
             crawNewsData(source['base'], source['link'])
+        elif source["type"] == 'film':
+            crawFilm(source['base'], source['link'])
