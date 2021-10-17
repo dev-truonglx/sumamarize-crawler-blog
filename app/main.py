@@ -1,12 +1,14 @@
 import re
 from typing import Optional
-
 import cfscrape
 import requests
 from bs4 import BeautifulSoup
 from fastapi import FastAPI
 from PIL import Image, ImageDraw, ImageFont
 from pydantic import BaseModel
+import os
+import codecs
+import time
 
 app = FastAPI()
 
@@ -30,17 +32,20 @@ async def read_item(item: Item):
     scraper = cfscrape.create_scraper(sess=session)
     req = scraper.get(url).content
 
+    start = time.time()
+    f_name = str(start)+'result.html'
+    f = open(f_name, 'wb')
+    f.write(req)
+    f.close
+
     pattern = re.compile(
         r'src=(["\'])(.*?)\1', re.MULTILINE | re.DOTALL)
 
-    # news = requests.get(url, headers)
-    # print(news)
-    soup = BeautifulSoup(req, "html.parser")
+    soup = codecs.open(os.getcwd()+'/'+f_name, "r", "utf-8").read()
     print(soup)
-    # title = soup.find(
-    #     "a", {"class": ["fs-16 flex flex-hozi-center color-yellow border-style-1"]}).text
-    # tap = soup.find(
-    #     "div", {"class": ["fs-17 fw-700 padding-0-20 color-gray inline-flex height-40 flex-hozi-center bg-black border-l-t"]}).text
+
+    soup = BeautifulSoup(soup, "html.parser")
+
     get_script = soup.find('script', text=pattern)
     conten_script = get_script.string
 
@@ -51,6 +56,5 @@ async def read_item(item: Item):
     if len(url):
         url_final = re.findall('http[^\"]*', url[0])[0]
 
-    # return url_final
     print(url_final)
     return {"url": url_final}
