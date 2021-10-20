@@ -1,6 +1,5 @@
 import re
 from typing import Optional
-import cfscrape
 import requests
 from bs4 import BeautifulSoup
 from fastapi import FastAPI
@@ -9,6 +8,7 @@ from pydantic import BaseModel
 import os
 import codecs
 import time
+import cloudscraper
 
 app = FastAPI()
 
@@ -26,23 +26,30 @@ class Item(BaseModel):
 async def read_item(item: Item):
     url = item.url
     print(item.url)
-    session = requests.session()
-    session.headers = 'content-type'
-    session.mount("http://", cfscrape.CloudflareScraper())
-    scraper = cfscrape.create_scraper(sess=session)
-    req = scraper.get(url).content
+    # session = requests.session()
+    # session.headers = 'content-type'
+    # session.mount("http://", cfscrape.CloudflareScraper())
+    # scraper = cfscrape.create_scraper(sess=session)
+    # req = scraper.get(url).content
 
-    start = time.time()
-    f_name = str(start)+'result.html'
-    f = open(f_name, 'wb')
-    f.write(req)
-    f.close
+    # start = time.time()
+    # f_name = str(start)+'result.html'
+    # f = open(f_name, 'wb')
+    # f.write(req)
+    # f.close
+    scraper = cloudscraper.create_scraper(browser={
+        'browser': 'firefox',
+        'platform': 'windows',
+        'mobile': False
+    })  # returns a CloudScraper instance
+    soup = scraper.get(url).content
+    print(soup)
 
     pattern = re.compile(
         r'src=(["\'])(.*?)\1', re.MULTILINE | re.DOTALL)
 
-    soup = codecs.open(os.getcwd()+'/'+f_name, "r", "utf-8").read()
-    print(soup)
+    # soup = codecs.open(os.getcwd()+'/'+f_name, "r", "utf-8").read()
+    # print(soup)
 
     soup = BeautifulSoup(soup, "html.parser")
 
